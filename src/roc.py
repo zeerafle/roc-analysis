@@ -27,7 +27,113 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md("""
-    ## 1. The Confusion Matrix
+    ## 1. Simulating a Classifier
+
+    Let's start with a concrete example: a classifier that produces scores for 20 examples.
+    The **true labels** (1=Positive, 0=Negative) are known, and the classifier assigns a **confidence score** to each.
+
+    Adjust the **decision threshold** to see how it affects classification performance.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    # Threshold Slider for discrete data
+    decision_threshold = mo.ui.slider(
+        start=0.0, stop=1.0, step=0.05, value=0.50, label="Decision Threshold"
+    )
+
+    mo.md(
+        f"""
+        ### Decision Threshold
+        Scores ≥ threshold → Predicted **Positive**
+        Scores < threshold → Predicted **Negative**
+
+        {decision_threshold}
+        """
+    )
+    return decision_threshold,
+
+
+@app.cell
+def _(decision_threshold, go, mo):
+    # Discrete Dataset Simulation
+    # 1 = Positive, 0 = Negative
+    true_labels = [1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0]
+    # Classifier scores (confidence)
+    classifier_scores = [
+        0.95, 0.91, 0.85, 0.81, 0.78, 0.75, 0.72, 0.68, 0.65, 0.61,
+        0.58, 0.55, 0.52, 0.49, 0.45, 0.42, 0.38, 0.35, 0.31, 0.10
+    ]
+
+    # Apply threshold to get predictions
+    threshold_val = decision_threshold.value
+    predictions = [1 if score >= threshold_val else 0 for score in classifier_scores]
+
+    # Calculate confusion matrix from predictions
+    tp_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 1 and predictions[i] == 1)
+    fn_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 1 and predictions[i] == 0)
+    fp_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 0 and predictions[i] == 1)
+    tn_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 0 and predictions[i] == 0)
+
+    # Create visualization of the data
+    colors = ['green' if t == p else 'red' for t, p in zip(true_labels, predictions)]
+    symbols = ['circle' if t == 1 else 'square' for t in true_labels]
+
+    fig_data = go.Figure()
+    fig_data.add_trace(go.Scatter(
+        x=list(range(len(classifier_scores))),
+        y=classifier_scores,
+        mode='markers+text',
+        marker=dict(size=12, color=colors, symbol=symbols, line=dict(width=2, color='black')),
+        text=[f"{'P' if t == 1 else 'N'}" for t in true_labels],
+        textposition="top center",
+        hovertemplate="Example %{x}<br>Score: %{y:.2f}<br>True: %{text}<br>Pred: %{marker.color}<extra></extra>",
+        showlegend=False
+    ))
+
+    # Add threshold line
+    fig_data.add_hline(
+        y=threshold_val,
+        line_dash="dash",
+        line_color="blue",
+        annotation_text=f"Threshold = {threshold_val:.2f}",
+        annotation_position="right"
+    )
+
+    fig_data.update_layout(
+        title="Classifier Scores & True Labels",
+        xaxis_title="Example Index",
+        yaxis_title="Classifier Score",
+        height=350,
+        template="plotly_white",
+        annotations=[
+            dict(x=0.02, y=0.98, xref="paper", yref="paper", text="🟢 = Correct | 🔴 = Wrong", showarrow=False, xanchor="left"),
+            dict(x=0.02, y=0.92, xref="paper", yref="paper", text="● = Positive | ■ = Negative", showarrow=False, xanchor="left")
+        ]
+    )
+
+    mo.ui.plotly(fig_data)
+    return (
+        classifier_scores,
+        colors,
+        fig_data,
+        fn_sim,
+        fp_sim,
+        predictions,
+        symbols,
+        threshold_val,
+        tn_sim,
+        tp_sim,
+        true_labels,
+    )
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## 2. The Confusion Matrix
 
     A classification model maps examples to classes. For a binary classification problem (Positive/Negative), there are four possible outcomes represented in a **Confusion Matrix**:
 
@@ -40,36 +146,64 @@ def _(mo):
 
 
 @app.cell
-def _(mo):
-    # Interactive inputs for Confusion Matrix
-    tp = mo.ui.number(value=50, label="TP (Hit)", step=1)
-    fn = mo.ui.number(value=10, label="FN (Miss)", step=1)
-    fp = mo.ui.number(value=10, label="FP (False Alarm)", step=1)
-    tn = mo.ui.number(value=90, label="TN (Correct Rejection)", step=1)
+def _(fn_sim, fp_sim, go, mo, tn_sim, tp_sim):
+    # Use values from simulation
+    tp = tp_sim
+    fn = fn_sim
+    fp = fp_sim
+    tn = tn_sim
 
-    mo.md(
-        f"""
-        ### Interactive Confusion Matrix
-        Adjust the values below to see how metrics change.
+    # Visualize confusion matrix as heatmap
+    conf_matrix = [
+        [tn, fp],  # Actual Negative
+        [fn, tp],  # Actual Positive
+    ]
 
-        {mo.hstack([tp, fn, fp, tn], justify="center")}
-        """
+    fig_conf = go.Figure(data=go.Heatmap(
+        z=conf_matrix,
+        x=['Predicted Negative', 'Predicted Positive'],
+        y=['Actual Negative', 'Actual Positive'],
+        text=conf_matrix,
+        texttemplate="%{text}",
+        textfont={"size": 20},
+        colorscale='Blues',
+        showscale=False
+    ))
+
+    fig_conf.update_layout(
+        title="Confusion Matrix",
+        height=400,
+        width=500,
+        template="plotly_white"
     )
-    return fn, fp, tn, tp
+
+    mo.vstack([
+        mo.md(f"""
+        ### Confusion Matrix from Classifier
+
+        The confusion matrix shows the four possible outcomes:
+        - **TP = {tp}** (True Positives)
+        - **FN = {fn}** (False Negatives / Misses)
+        - **FP = {fp}** (False Positives / False Alarms)
+        - **TN = {tn}** (True Negatives)
+        """),
+        mo.ui.plotly(fig_conf)
+    ])
+    return conf_matrix, fig_conf, fn, fp, tn, tp
 
 
 @app.cell
 def _(fn, fp, mo, tn, tp):
     # Calculate totals and metrics
-    P = tp.value + fn.value
-    N = fp.value + tn.value
+    P = tp + fn
+    N = fp + tn
 
-    tpr = tp.value / P if P > 0 else 0.0
-    fpr = fp.value / N if N > 0 else 0.0
+    tpr = tp / P if P > 0 else 0.0
+    fpr = fp / N if N > 0 else 0.0
 
-    accuracy = (tp.value + tn.value) / (P + N) if (P + N) > 0 else 0.0
+    accuracy = (tp + tn) / (P + N) if (P + N) > 0 else 0.0
     precision = (
-        tp.value / (tp.value + fp.value) if (tp.value + fp.value) > 0 else 0.0
+        tp / (tp + fp) if (tp + fp) > 0 else 0.0
     )
 
     mo.md(
@@ -134,28 +268,121 @@ def _(fpr, go, mo, tpr):
 
     mo.vstack(
         [
-            mo.md("## 2. ROC Space"),
+            mo.md("## 3. ROC Space"),
             mo.md(
-                "ROC graphs are two-dimensional graphs in which TP rate is plotted on the Y axis and FP rate is plotted on the X axis."
+                "ROC graphs are two-dimensional graphs in which TP rate is plotted on the Y axis and FP rate is plotted on the X axis. The red point shows our current classifier's performance."
             ),
             mo.ui.plotly(fig),
         ]
     )
-    return
+    return fig,
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    ## 3. Scoring Classifiers & Thresholds
+    ## 4. Empirical ROC Curve
 
-    Many classifiers (e.g., Naive Bayes, Neural Networks) output a **score** or **probability** rather than a discrete class label.
-    A **threshold** is applied to this score to decide the class.
+    Now let's generate the **complete ROC curve** by sweeping the threshold across all possible values.
+    Each point on the curve represents a different threshold applied to our classifier scores.
+    """)
+    return
 
-    *   Score $\gt$ Threshold $\rightarrow$ Positive
-    *   Score $\le$ Threshold $\rightarrow$ Negative
 
-    Changing the threshold changes the TP and FP rates, creating a curve in ROC space.
+@app.cell
+def _(classifier_scores, go, mo, true_labels):
+    # Generate ROC curve by varying threshold
+    # Sort by score descending
+    data_sorted = sorted(zip(classifier_scores, true_labels), key=lambda x: x[0], reverse=True)
+    sorted_scores_roc = [x[0] for x in data_sorted]
+    sorted_labels_roc = [x[1] for x in data_sorted]
+
+    # Calculate ROC points
+    P_total_roc = sum(sorted_labels_roc)
+    N_total_roc = len(sorted_labels_roc) - P_total_roc
+
+    tp_count_roc = 0
+    fp_count_roc = 0
+
+    discrete_fpr = [0.0]
+    discrete_tpr = [0.0]
+    threshold_points = [1.0]  # Start with threshold above all scores
+
+    for i, label in enumerate(sorted_labels_roc):
+        if label == 1:
+            tp_count_roc += 1
+        else:
+            fp_count_roc += 1
+
+        discrete_fpr.append(fp_count_roc / N_total_roc)
+        discrete_tpr.append(tp_count_roc / P_total_roc)
+        threshold_points.append(sorted_scores_roc[i])
+
+    # Plot empirical ROC
+    fig_empirical_roc = go.Figure()
+    fig_empirical_roc.add_trace(
+        go.Scatter(
+            x=discrete_fpr,
+            y=discrete_tpr,
+            mode="lines+markers",
+            name="Empirical ROC",
+            line_shape="hv",  # Step plot for discrete data
+            marker=dict(size=6),
+            hovertemplate="FPR: %{x:.2f}<br>TPR: %{y:.2f}<extra></extra>"
+        )
+    )
+
+    fig_empirical_roc.add_shape(
+        type="line", x0=0, y0=0, x1=1, y1=1,
+        line=dict(color="Gray", dash="dash"),
+    )
+
+    fig_empirical_roc.update_layout(
+        title="Empirical ROC Curve (Jagged/Step-like)",
+        xaxis_title="False Positive Rate (FPR)",
+        yaxis_title="True Positive Rate (TPR)",
+        xaxis=dict(range=[-0.05, 1.05]),
+        yaxis=dict(range=[-0.05, 1.05]),
+        width=600,
+        height=500,
+        template="plotly_white"
+    )
+
+    mo.vstack([
+        mo.md("""
+        ### The 'Jagged' Curve
+
+        This is what **real ROC curves** look like! The step-like pattern occurs because:
+        - Each step **up** = correctly classifying a Positive example (TP increases)
+        - Each step **right** = incorrectly classifying a Negative example (FP increases)
+
+        Change the decision threshold above to see where your current operating point falls on this curve.
+        """),
+        mo.ui.plotly(fig_empirical_roc)
+    ])
+    return (
+        N_total_roc,
+        P_total_roc,
+        data_sorted,
+        discrete_fpr,
+        discrete_tpr,
+        fig_empirical_roc,
+        fp_count_roc,
+        sorted_labels_roc,
+        sorted_scores_roc,
+        threshold_points,
+        tp_count_roc,
+    )
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## 5. Theoretical ROC: Continuous Distributions
+
+    The jagged curve above comes from discrete data. In contrast, when we model classifiers using **continuous probability distributions**, we get smooth ROC curves.
+
+    This is useful for theoretical analysis and understanding the relationship between class distributions and ROC curves.
     """)
     return
 
@@ -308,99 +535,13 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
     return
 
 
-@app.cell
-def _(mo):
-    mo.md("""
-    ## 4. Empirical ROC Curves (Discrete Data)
 
-    The smooth curve above represents theoretical distributions. In practice, we work with finite datasets, which produce **jagged, step-like** ROC curves.
-
-    *   **Step Up**: When we correctly classify a Positive instance (TP increases).
-    *   **Step Right**: When we incorrectly classify a Negative instance (FP increases).
-
-    Below is a simulation of a discrete dataset with 20 examples.
-    """)
-    return
-
-
-@app.cell
-def _(go, mo):
-    # Discrete Dataset Simulation
-    # 1 = Positive, 0 = Negative
-    true_labels = [1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0]
-    # Random-ish scores sorted roughly by label to make a decent curve
-    scores = [
-        0.95, 0.91, 0.85, 0.81, 0.78, 0.75, 0.72, 0.68, 0.65, 0.61,
-        0.58, 0.55, 0.52, 0.49, 0.45, 0.42, 0.38, 0.35, 0.31, 0.10
-    ]
-
-    # Sort by score descending
-    data = sorted(zip(scores, true_labels), key=lambda x: x[0], reverse=True)
-    sorted_scores = [x[0] for x in data]
-    sorted_labels = [x[1] for x in data]
-
-    # Calculate ROC points
-    P_total = sum(sorted_labels)
-    N_total = len(sorted_labels) - P_total
-
-    tp_count = 0
-    fp_count = 0
-
-    discrete_fpr = [0.0]
-    discrete_tpr = [0.0]
-    text_labels = ["Start"]
-
-    for i, label in enumerate(sorted_labels):
-        if label == 1:
-            tp_count += 1
-        else:
-            fp_count += 1
-
-        discrete_fpr.append(fp_count / N_total)
-        discrete_tpr.append(tp_count / P_total)
-        text_labels.append(f"Score: {sorted_scores[i]}")
-
-    # Plot
-    fig_empirical = go.Figure()
-    fig_empirical.add_trace(
-        go.Scatter(
-            x=discrete_fpr,
-            y=discrete_tpr,
-            mode="lines+markers",
-            name="Empirical ROC",
-            line_shape="hv", # Step plot
-            text=text_labels,
-            hovertemplate="FPR: %{x:.2f}<br>TPR: %{y:.2f}<br>%{text}<extra></extra>"
-        )
-    )
-
-    fig_empirical.add_shape(
-        type="line", x0=0, y0=0, x1=1, y1=1,
-        line=dict(color="Gray", dash="dash"),
-    )
-
-    fig_empirical.update_layout(
-        title="Empirical ROC (Discrete Dataset)",
-        xaxis_title="False Positive Rate",
-        yaxis_title="True Positive Rate",
-        xaxis=dict(range=[-0.05, 1.05]),
-        yaxis=dict(range=[-0.05, 1.05]),
-        width=600,
-        height=500,
-        template="plotly_white"
-    )
-
-    mo.vstack([
-        mo.md("### The 'Jagged' Curve"),
-        mo.ui.plotly(fig_empirical)
-    ])
-    return
 
 
 @app.cell
 def _(mo):
     mo.md("""
-    ## 5. Area Under the Curve (AUC)
+    ## 6. Area Under the Curve (AUC)
 
     The **AUC** (Area Under the ROC Curve) reduces the ROC performance to a single scalar value representing expected performance.
 
@@ -415,7 +556,7 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md("""
-    ## 6. Advanced Concepts: Convex Hull & Costs
+    ## 7. Advanced Concepts: Convex Hull & Costs
 
     *   **Convex Hull**: The ROC Convex Hull (ROCCH) represents the potentially optimal classifiers. Classifiers below the convex hull are always sub-optimal.
     *   **Costs & Class Skew**: Different operating points on the ROC curve are optimal for different class distributions (ratio of Pos/Neg) and misclassification costs.
