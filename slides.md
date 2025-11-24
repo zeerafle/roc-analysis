@@ -134,19 +134,38 @@ $$ AUC = P(Score(x^+) > Score(x^-)) $$
 It is a measure of **ranking quality**, independent of the threshold.
 
 ---
+layout: center
+---
+
+# Interactive AUC Visualization
+
+Move the sliders to change the classifier's operating point (TP and FP).
+See how the **ROC Curve** bends and the **AUC** changes.
+
+<InteractiveAuc />
+
+---
+layout: two-cols
+gap: 8
+---
 
 # Convex Hull & Iso-Performance
 
--   **ROC Convex Hull (ROCCH)**:
-    -   If you have multiple classifiers, the "best" system is the convex hull of their points in ROC space.
-    -   You can interpolate between classifiers on the hull.
-    -   Classifiers below the hull are suboptimal.
+- __ROC Convex Hull (ROCCH)__
+  - The "best" system is the convex hull of all classifiers.
+  - Classifiers **A** and **C** form the hull.
+  - Classifiers **B** and **D** are suboptimal (below the hull).
 
--   **Iso-Performance Lines**:
-    -   Lines connecting points with equal **Expected Cost**.
-    -   Slope depends on class distribution and error costs.
-    -   $Slope = \frac{P(N) \times Cost(FP)}{P(P) \times Cost(FN)}$
-    -   We want to find the point on the ROC curve (or hull) that is tangent to the iso-performance line with the lowest cost.
+- __Iso-Performance Lines__
+  - Lines of equal **Expected Cost**.
+  - Slope $m = \frac{P(N) \cdot C(FP)}{P(P) \cdot C(FN)}$.
+  - Optimal point is tangent to the line with slope $m$.
+
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <InteractiveConvexHull />
+</div>
 
 ---
 
