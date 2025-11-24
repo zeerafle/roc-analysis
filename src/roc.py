@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.17.8"
-app = marimo.App(width="medium")
+app = marimo.App(width="medium", layout_file="layouts/roc.slides.json")
 
 
 @app.cell
@@ -9,89 +9,161 @@ def _():
     import marimo as mo
     import plotly.graph_objects as go
     import math
-    return go, math, mo
+    import datetime
+    return datetime, go, math, mo
 
 
 @app.cell
-def _(mo):
-    mo.md("""
+def _(datetime, mo):
+    mo.md(f"""
     # Introduction to ROC Analysis
 
-    Based on **"An Introduction to ROC Analysis"** by Tom Fawcett.
+    > Vauwez Sam El Fareez | 20249258020@cumhuriyet.edu.tr
 
-    This interactive notebook explores **Receiver Operating Characteristics (ROC)** graphs, a powerful tool for visualizing, organizing, and selecting classifiers based on their performance.
+
+    ---
+
+    {datetime.datetime.now().strftime("%d.%m.%Y")}
     """)
     return
 
 
 @app.cell
+def _(fig_empirical_roc, mo):
+    mo.vstack(
+        [
+            mo.md("# Receiver Operating Characteristics (ROC)"),
+            mo.hstack(
+                [
+                    mo.md("""
+    * **Visualization and Organization:** ROC graphs are a powerful **two-dimensional graphical technique** used for **visualizing, organizing, and selecting classifiers** based on their performance, especially in domains like medical decision making and machine learning.
+    * **Trade-off Representation:** The graphs depict the **relative trade-off** between the **benefits** of a classifier—measured by the **True Positive Rate (tp rate)** on the Y-axis—and its **costs**—measured by the **False Positive Rate (fp rate)** on the X-axis. 
+    * **Historical Context and Utility:** Originating in **signal detection theory**, ROC analysis has gained traction in machine learning because it offers a more robust performance metric than simple classification accuracy, particularly for problems involving **skewed class distributions** and **unequal classification error costs**.
+                    """),
+                    mo.ui.plotly(fig_empirical_roc),
+                ]
+            ),
+        ],
+        gap=3,
+    )
+    return
+
+
+@app.cell
 def _(mo):
-    mo.md("""
+    mo.md(f"""
     ## 1. Simulating a Classifier
 
-    Let's start with a concrete example: a classifier that produces scores for 20 examples.
-    The **true labels** (1=Positive, 0=Negative) are known, and the classifier assigns a **confidence score** to each.
-
-    Adjust the **decision threshold** to see how it affects classification performance.
+    - Let's start with a concrete example: a classifier that produces scores for 20 examples.
+    - The **true labels** (1=Positive, 0=Negative) are known, and the classifier assigns a **confidence score** to each.
+    - Adjust the **decision threshold** to see how it affects classification performance.
     """)
     return
 
 
 @app.cell
 def _(mo):
-    # Threshold Slider for discrete data
+    # Threshold Slider with on_change callback
     decision_threshold = mo.ui.slider(
-        start=0.0, stop=1.0, step=0.05, value=0.50, label="Decision Threshold"
+        start=0.0,
+        stop=1.0,
+        step=0.05,
+        label="Decision Threshold",
     )
 
-    mo.md(
-        f"""
-        ### Decision Threshold
-        Scores ≥ threshold → Predicted **Positive**
-        Scores < threshold → Predicted **Negative**
+    mo.md(f"""
 
-        {decision_threshold}
-        """
-    )
-    return decision_threshold,
+    ### Decision Threshold
+
+    - Scores ≥ threshold → Predicted **Positive**
+    - Scores < threshold → Predicted **Negative**
+
+    {decision_threshold}
+    """)
+    return (decision_threshold,)
 
 
 @app.cell
-def _(decision_threshold, go, mo):
+def _(decision_threshold, go):
     # Discrete Dataset Simulation
     # 1 = Positive, 0 = Negative
     true_labels = [1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0]
     # Classifier scores (confidence)
     classifier_scores = [
-        0.95, 0.91, 0.85, 0.81, 0.78, 0.75, 0.72, 0.68, 0.65, 0.61,
-        0.58, 0.55, 0.52, 0.49, 0.45, 0.42, 0.38, 0.35, 0.31, 0.10
+        0.95,
+        0.91,
+        0.85,
+        0.81,
+        0.78,
+        0.75,
+        0.72,
+        0.68,
+        0.65,
+        0.61,
+        0.58,
+        0.55,
+        0.52,
+        0.49,
+        0.45,
+        0.42,
+        0.38,
+        0.35,
+        0.31,
+        0.10,
     ]
 
-    # Apply threshold to get predictions
+    # Use the state value
     threshold_val = decision_threshold.value
-    predictions = [1 if score >= threshold_val else 0 for score in classifier_scores]
+    predictions = [
+        1 if score >= threshold_val else 0 for score in classifier_scores
+    ]
 
     # Calculate confusion matrix from predictions
-    tp_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 1 and predictions[i] == 1)
-    fn_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 1 and predictions[i] == 0)
-    fp_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 0 and predictions[i] == 1)
-    tn_sim = sum(1 for i in range(len(true_labels)) if true_labels[i] == 0 and predictions[i] == 0)
+    tp_sim = sum(
+        1
+        for i in range(len(true_labels))
+        if true_labels[i] == 1 and predictions[i] == 1
+    )
+    fn_sim = sum(
+        1
+        for i in range(len(true_labels))
+        if true_labels[i] == 1 and predictions[i] == 0
+    )
+    fp_sim = sum(
+        1
+        for i in range(len(true_labels))
+        if true_labels[i] == 0 and predictions[i] == 1
+    )
+    tn_sim = sum(
+        1
+        for i in range(len(true_labels))
+        if true_labels[i] == 0 and predictions[i] == 0
+    )
 
     # Create visualization of the data
-    colors = ['green' if t == p else 'red' for t, p in zip(true_labels, predictions)]
-    symbols = ['circle' if t == 1 else 'square' for t in true_labels]
+    colors = [
+        "green" if t == p else "red" for t, p in zip(true_labels, predictions)
+    ]
+    symbols = ["circle" if t == 1 else "square" for t in true_labels]
 
     fig_data = go.Figure()
-    fig_data.add_trace(go.Scatter(
-        x=list(range(len(classifier_scores))),
-        y=classifier_scores,
-        mode='markers+text',
-        marker=dict(size=12, color=colors, symbol=symbols, line=dict(width=2, color='black')),
-        text=[f"{'P' if t == 1 else 'N'}" for t in true_labels],
-        textposition="top center",
-        hovertemplate="Example %{x}<br>Score: %{y:.2f}<br>True: %{text}<br>Pred: %{marker.color}<extra></extra>",
-        showlegend=False
-    ))
+    fig_data.add_trace(
+        go.Scatter(
+            x=list(range(len(classifier_scores))),
+            y=classifier_scores,
+            mode="markers+text",
+            marker=dict(
+                size=12,
+                color=colors,
+                symbol=symbols,
+                line=dict(width=2, color="black"),
+            ),
+            text=[f"{'P' if t == 1 else 'N'}" for t in true_labels],
+            textposition="top center",
+            hovertemplate="Example %{x}<br>Score: %{y:.2f}<br>True: %{text}<br>Pred: %{marker.color}<extra></extra>",
+            showlegend=False,
+        )
+    )
 
     # Add threshold line
     fig_data.add_hline(
@@ -99,7 +171,7 @@ def _(decision_threshold, go, mo):
         line_dash="dash",
         line_color="blue",
         annotation_text=f"Threshold = {threshold_val:.2f}",
-        annotation_position="right"
+        annotation_position="right",
     )
 
     fig_data.update_layout(
@@ -109,21 +181,32 @@ def _(decision_threshold, go, mo):
         height=350,
         template="plotly_white",
         annotations=[
-            dict(x=0.02, y=0.98, xref="paper", yref="paper", text="🟢 = Correct | 🔴 = Wrong", showarrow=False, xanchor="left"),
-            dict(x=0.02, y=0.92, xref="paper", yref="paper", text="● = Positive | ■ = Negative", showarrow=False, xanchor="left")
-        ]
+            dict(
+                x=0.02,
+                y=0.98,
+                xref="paper",
+                yref="paper",
+                text="🟢 = Correct | 🔴 = Wrong",
+                showarrow=False,
+                xanchor="left",
+            ),
+            dict(
+                x=0.02,
+                y=0.92,
+                xref="paper",
+                yref="paper",
+                text="● = Positive | ■ = Negative",
+                showarrow=False,
+                xanchor="left",
+            ),
+        ],
     )
-
-    mo.ui.plotly(fig_data)
+    print("plot")
     return (
         classifier_scores,
-        colors,
         fig_data,
         fn_sim,
         fp_sim,
-        predictions,
-        symbols,
-        threshold_val,
         tn_sim,
         tp_sim,
         true_labels,
@@ -146,7 +229,7 @@ def _(mo):
 
 
 @app.cell
-def _(fn_sim, fp_sim, go, mo, tn_sim, tp_sim):
+def _(fn_sim, fp_sim, go, tn_sim, tp_sim):
     # Use values from simulation
     tp = tp_sim
     fn = fn_sim
@@ -159,41 +242,29 @@ def _(fn_sim, fp_sim, go, mo, tn_sim, tp_sim):
         [fn, tp],  # Actual Positive
     ]
 
-    fig_conf = go.Figure(data=go.Heatmap(
-        z=conf_matrix,
-        x=['Predicted Negative', 'Predicted Positive'],
-        y=['Actual Negative', 'Actual Positive'],
-        text=conf_matrix,
-        texttemplate="%{text}",
-        textfont={"size": 20},
-        colorscale='Blues',
-        showscale=False
-    ))
-
-    fig_conf.update_layout(
-        title="Confusion Matrix",
-        height=400,
-        width=500,
-        template="plotly_white"
+    fig_conf = go.Figure(
+        data=go.Heatmap(
+            z=conf_matrix,
+            x=["Predicted Negative", "Predicted Positive"],
+            y=["Actual Negative", "Actual Positive"],
+            text=conf_matrix,
+            texttemplate="%{text}",
+            textfont={"size": 20},
+            colorscale="Blues",
+            showscale=False,
+        )
     )
 
-    mo.vstack([
-        mo.md(f"""
-        ### Confusion Matrix from Classifier
+    fig_conf.update_layout(
+        title="Confusion Matrix", height=400, width=500, template="plotly_white"
+    )
 
-        The confusion matrix shows the four possible outcomes:
-        - **TP = {tp}** (True Positives)
-        - **FN = {fn}** (False Negatives / Misses)
-        - **FP = {fp}** (False Positives / False Alarms)
-        - **TN = {tn}** (True Negatives)
-        """),
-        mo.ui.plotly(fig_conf)
-    ])
-    return conf_matrix, fig_conf, fn, fp, tn, tp
+    print("confusion matrix")
+    return fig_conf, fn, fp, tn, tp
 
 
 @app.cell
-def _(fn, fp, mo, tn, tp):
+def _(fn, fp, tn, tp):
     # Calculate totals and metrics
     P = tp + fn
     N = fp + tn
@@ -202,29 +273,79 @@ def _(fn, fp, mo, tn, tp):
     fpr = fp / N if N > 0 else 0.0
 
     accuracy = (tp + tn) / (P + N) if (P + N) > 0 else 0.0
-    precision = (
-        tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fp) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall)
+
+    return N, P, accuracy, f1, fpr, precision, recall, tpr
+
+
+@app.cell
+def _(
+    N,
+    P,
+    accuracy,
+    f1,
+    fig_conf,
+    fig_data,
+    fn,
+    fp,
+    fpr,
+    mo,
+    precision,
+    recall,
+    tn,
+    tp,
+    tpr,
+):
+    mo.vstack(
+        [
+            mo.hstack(
+                [
+                    mo.vstack(
+                        [
+                            mo.md(f"""
+                            ### Confusion Matrix from Classifier
+                        
+                            The confusion matrix shows the four possible outcomes:
+                            - **TP = {tp}** (True Positives)
+                            - **FN = {fn}** (False Negatives / Misses)
+                            - **FP = {fp}** (False Positives / False Alarms)
+                            - **TN = {tn}** (True Negatives)
+                            """),
+                            mo.ui.plotly(fig_conf),
+                        ],
+                        gap=0,
+                    ),
+                    mo.vstack(
+                        [
+                            mo.md(f"""
+                            ### Calculated Metrics
+                    
+                            *   **Total Positives (P)**: {P}
+                            *   **Total Negatives (N)**: {N}
+                    
+                            #### Key Rates for ROC
+                            *   **True Positive Rate (Sensitivity, Recall)**:
+                                $$TPR = \\frac{{TP}}{{P}} = {tpr:.3f}$$
+                            *   **False Positive Rate (1 - Specificity)**:
+                                $$FPR = \\frac{{FP}}{{N}} = {fpr:.3f}$$
+                    
+                            #### Other Metrics
+                            *   **Accuracy**: {accuracy:.3f}
+                            *   **Precision**: {precision:.3f}
+                            *   **Recall**: {recall:.3f}
+                            *   **F1**: {f1:.3f}
+                            """),
+                        ],
+                        gap=0,
+                    ),
+                ]
+            ),
+            fig_data,
+        ]
     )
-
-    mo.md(
-        f"""
-        ### Calculated Metrics
-
-        *   **Total Positives (P)**: {P}
-        *   **Total Negatives (N)**: {N}
-
-        #### Key Rates for ROC
-        *   **True Positive Rate (Sensitivity, Recall)**:
-            $$TPR = \\frac{{TP}}{{P}} = {tpr:.3f}$$
-        *   **False Positive Rate (1 - Specificity)**:
-            $$FPR = \\frac{{FP}}{{N}} = {fpr:.3f}$$
-
-        #### Other Metrics
-        *   **Accuracy**: {accuracy:.3f}
-        *   **Precision**: {precision:.3f}
-        """
-    )
-    return fpr, tpr
+    return
 
 
 @app.cell
@@ -275,7 +396,7 @@ def _(fpr, go, mo, tpr):
             mo.ui.plotly(fig),
         ]
     )
-    return fig,
+    return
 
 
 @app.cell
@@ -293,7 +414,9 @@ def _(mo):
 def _(classifier_scores, go, mo, true_labels):
     # Generate ROC curve by varying threshold
     # Sort by score descending
-    data_sorted = sorted(zip(classifier_scores, true_labels), key=lambda x: x[0], reverse=True)
+    data_sorted = sorted(
+        zip(classifier_scores, true_labels), key=lambda x: x[0], reverse=True
+    )
     sorted_scores_roc = [x[0] for x in data_sorted]
     sorted_labels_roc = [x[1] for x in data_sorted]
 
@@ -328,28 +451,33 @@ def _(classifier_scores, go, mo, true_labels):
             name="Empirical ROC",
             line_shape="hv",  # Step plot for discrete data
             marker=dict(size=6),
-            hovertemplate="FPR: %{x:.2f}<br>TPR: %{y:.2f}<extra></extra>"
+            hovertemplate="FPR: %{x:.2f}<br>TPR: %{y:.2f}<extra></extra>",
         )
     )
 
     fig_empirical_roc.add_shape(
-        type="line", x0=0, y0=0, x1=1, y1=1,
+        type="line",
+        x0=0,
+        y0=0,
+        x1=1,
+        y1=1,
         line=dict(color="Gray", dash="dash"),
     )
 
     fig_empirical_roc.update_layout(
-        title="Empirical ROC Curve (Jagged/Step-like)",
+        title="ROC Curve",
         xaxis_title="False Positive Rate (FPR)",
         yaxis_title="True Positive Rate (TPR)",
         xaxis=dict(range=[-0.05, 1.05]),
         yaxis=dict(range=[-0.05, 1.05]),
         width=600,
         height=500,
-        template="plotly_white"
+        template="plotly_white",
     )
 
-    mo.vstack([
-        mo.md("""
+    mo.vstack(
+        [
+            mo.md("""
         ### The 'Jagged' Curve
 
         This is what **real ROC curves** look like! The step-like pattern occurs because:
@@ -358,21 +486,10 @@ def _(classifier_scores, go, mo, true_labels):
 
         Change the decision threshold above to see where your current operating point falls on this curve.
         """),
-        mo.ui.plotly(fig_empirical_roc)
-    ])
-    return (
-        N_total_roc,
-        P_total_roc,
-        data_sorted,
-        discrete_fpr,
-        discrete_tpr,
-        fig_empirical_roc,
-        fp_count_roc,
-        sorted_labels_roc,
-        sorted_scores_roc,
-        threshold_points,
-        tp_count_roc,
+            mo.ui.plotly(fig_empirical_roc),
+        ]
     )
+    return (fig_empirical_roc,)
 
 
 @app.cell
@@ -401,8 +518,7 @@ def _(mo):
     mu_pos = mo.ui.slider(
         start=55, stop=80, value=60, label="Mean (Positive Class)"
     )
-    sigma = mo.ui.slider(start=5, stop=20, value=10, label="Std Dev (Both)"
-    )
+    sigma = mo.ui.slider(start=5, stop=20, value=10, label="Std Dev (Both)")
 
     mo.md(
         f"""
@@ -420,10 +536,12 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
     # Generate distributions
     x_vals = list(range(0, 101))
 
+
     def get_pdf(x, mu, s):
         return (1.0 / (s * math.sqrt(2 * math.pi))) * math.exp(
             -0.5 * ((x - mu) / s) ** 2
         )
+
 
     y_neg = [get_pdf(x, mu_neg.value, sigma.value) for x in x_vals]
     y_pos = [get_pdf(x, mu_pos.value, sigma.value) for x in x_vals]
@@ -475,7 +593,9 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
         height=400,
         margin=dict(l=20, r=20, t=40, b=20),
         template="plotly_white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1
+        ),
     )
 
     # Plot ROC Curve (dynamically generated from these distributions)
@@ -490,9 +610,7 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
         roc_y.append(t_rate)
 
     fig_roc = go.Figure()
-    fig_roc.add_trace(
-        go.Scatter(x=roc_x, y=roc_y, mode="lines", name="ROC Curve")
-    )
+    fig_roc.add_trace(go.Scatter(x=roc_x, y=roc_y, mode="lines", name="ROC Curve"))
 
     # Current point
     fig_roc.add_trace(
@@ -533,9 +651,6 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
         ]
     )
     return
-
-
-
 
 
 @app.cell
