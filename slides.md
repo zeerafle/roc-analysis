@@ -5,16 +5,18 @@ title: An Introduction to ROC Analysis
 info: |
   ## An Introduction to ROC Analysis
   Based on the paper by Tom Fawcett (2006).
-class: text-center
 drawings:
   persist: false
 transition: slide-left
 mdc: true
+layout: intro
 ---
 
 # An Introduction to ROC Analysis
 
-Based on the paper by Tom Fawcett (2006)
+Vauwez Sam El Fareez
+
+20249258020@cumhuriyet.edu.tr
 
 <div class="abs-br m-6 flex gap-2">
   <a href="https://github.com/slidevjs/slidev" target="_blank" alt="GitHub"
@@ -23,8 +25,6 @@ Based on the paper by Tom Fawcett (2006)
   </a>
 </div>
 
----
-transition: fade-out
 ---
 
 # Introduction
@@ -192,3 +192,9 @@ Sometimes people use **Precision-Recall (PR)** curves instead.
 -   **Convex Hull** helps select the best set of classifiers.
 
 **Takeaway**: Don't just look at accuracy! Look at the curve.
+
+---
+layout: end
+---
+
+# Thank You!
