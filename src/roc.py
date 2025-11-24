@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.17.8"
-app = marimo.App(width="medium", layout_file="layouts/roc.slides.json")
+app = marimo.App(width="medium")
 
 
 @app.cell
@@ -152,7 +152,7 @@ def _(mo):
     Many classifiers (e.g., Naive Bayes, Neural Networks) output a **score** or **probability** rather than a discrete class label.
     A **threshold** is applied to this score to decide the class.
 
-    *   Score > Threshold $\rightarrow$ Positive
+    *   Score $\gt$ Threshold $\rightarrow$ Positive
     *   Score $\le$ Threshold $\rightarrow$ Negative
 
     Changing the threshold changes the TP and FP rates, creating a curve in ROC space.
@@ -311,7 +311,96 @@ def _(go, math, mo, mu_neg, mu_pos, sigma, threshold_slider):
 @app.cell
 def _(mo):
     mo.md("""
-    ## 4. Area Under the Curve (AUC)
+    ## 4. Empirical ROC Curves (Discrete Data)
+
+    The smooth curve above represents theoretical distributions. In practice, we work with finite datasets, which produce **jagged, step-like** ROC curves.
+
+    *   **Step Up**: When we correctly classify a Positive instance (TP increases).
+    *   **Step Right**: When we incorrectly classify a Negative instance (FP increases).
+
+    Below is a simulation of a discrete dataset with 20 examples.
+    """)
+    return
+
+
+@app.cell
+def _(go, mo):
+    # Discrete Dataset Simulation
+    # 1 = Positive, 0 = Negative
+    true_labels = [1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0]
+    # Random-ish scores sorted roughly by label to make a decent curve
+    scores = [
+        0.95, 0.91, 0.85, 0.81, 0.78, 0.75, 0.72, 0.68, 0.65, 0.61,
+        0.58, 0.55, 0.52, 0.49, 0.45, 0.42, 0.38, 0.35, 0.31, 0.10
+    ]
+
+    # Sort by score descending
+    data = sorted(zip(scores, true_labels), key=lambda x: x[0], reverse=True)
+    sorted_scores = [x[0] for x in data]
+    sorted_labels = [x[1] for x in data]
+
+    # Calculate ROC points
+    P_total = sum(sorted_labels)
+    N_total = len(sorted_labels) - P_total
+
+    tp_count = 0
+    fp_count = 0
+
+    discrete_fpr = [0.0]
+    discrete_tpr = [0.0]
+    text_labels = ["Start"]
+
+    for i, label in enumerate(sorted_labels):
+        if label == 1:
+            tp_count += 1
+        else:
+            fp_count += 1
+
+        discrete_fpr.append(fp_count / N_total)
+        discrete_tpr.append(tp_count / P_total)
+        text_labels.append(f"Score: {sorted_scores[i]}")
+
+    # Plot
+    fig_empirical = go.Figure()
+    fig_empirical.add_trace(
+        go.Scatter(
+            x=discrete_fpr,
+            y=discrete_tpr,
+            mode="lines+markers",
+            name="Empirical ROC",
+            line_shape="hv", # Step plot
+            text=text_labels,
+            hovertemplate="FPR: %{x:.2f}<br>TPR: %{y:.2f}<br>%{text}<extra></extra>"
+        )
+    )
+
+    fig_empirical.add_shape(
+        type="line", x0=0, y0=0, x1=1, y1=1,
+        line=dict(color="Gray", dash="dash"),
+    )
+
+    fig_empirical.update_layout(
+        title="Empirical ROC (Discrete Dataset)",
+        xaxis_title="False Positive Rate",
+        yaxis_title="True Positive Rate",
+        xaxis=dict(range=[-0.05, 1.05]),
+        yaxis=dict(range=[-0.05, 1.05]),
+        width=600,
+        height=500,
+        template="plotly_white"
+    )
+
+    mo.vstack([
+        mo.md("### The 'Jagged' Curve"),
+        mo.ui.plotly(fig_empirical)
+    ])
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## 5. Area Under the Curve (AUC)
 
     The **AUC** (Area Under the ROC Curve) reduces the ROC performance to a single scalar value representing expected performance.
 
@@ -326,7 +415,7 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.md("""
-    ## 5. Advanced Concepts: Convex Hull & Costs
+    ## 6. Advanced Concepts: Convex Hull & Costs
 
     *   **Convex Hull**: The ROC Convex Hull (ROCCH) represents the potentially optimal classifiers. Classifiers below the convex hull are always sub-optimal.
     *   **Costs & Class Skew**: Different operating points on the ROC curve are optimal for different class distributions (ratio of Pos/Neg) and misclassification costs.
