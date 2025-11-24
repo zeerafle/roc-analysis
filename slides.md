@@ -50,8 +50,6 @@ For a binary classification problem (Positive vs Negative), there are four possi
 | **Actual Positive** | **True Positive (TP)** <br> (Hit) | **False Negative (FN)** <br> (Miss) |
 | **Actual Negative** | **False Positive (FP)** <br> (False Alarm) | **True Negative (TN)** <br> (Correct Rejection) |
 
-<br>
-
 From these, we derive key metrics:
 
 -   **True Positive Rate (TPR)** (Recall, Sensitivity): $TPR = \frac{TP}{TP + FN}$
@@ -61,12 +59,17 @@ From these, we derive key metrics:
 
 ---
 
+# Interactive Confusion Matrix
+
+<InteractiveConfusionMatrix />
+
+---
+layout: two-cols
+---
+
 # ROC Space
 
 We plot **FPR** on the X-axis and **TPR** on the Y-axis.
-
-<div class="grid grid-cols-2 gap-4">
-<div>
 
 -   **Top-Left (0, 1)**: Perfect Classification.
     -   0% False Positives, 100% True Positives.
@@ -76,23 +79,10 @@ We plot **FPR** on the X-axis and **TPR** on the Y-axis.
     -   Always wrong.
 -   **Below Diagonal**: Worse than random (invert the predictions to make it better!).
 
-</div>
-<div class="flex justify-center items-center">
-    <!-- Simple SVG or Mermaid diagram for ROC Space -->
-    <div class="bg-white p-4 rounded">
-      <svg width="200" height="200" viewBox="0 0 100 100" class="border border-gray-500">
-        <line x1="0" y1="100" x2="100" y2="0" stroke="gray" stroke-dasharray="4" />
-        <circle cx="0" cy="0" r="3" fill="green" />
-        <text x="5" y="10" font-size="8" fill="green">Perfect (0,1)</text>
-        <circle cx="100" cy="100" r="3" fill="red" />
-        <text x="60" y="90" font-size="8" fill="red">Worst (1,0)</text>
-        <text x="40" y="50" font-size="8" fill="gray">Random</text>
-        <!-- Axes labels -->
-        <text x="40" y="110" font-size="8">FPR</text>
-        <text x="-10" y="50" font-size="8" transform="rotate(-90 -10 50)">TPR</text>
-      </svg>
-    </div>
-</div>
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <RocSpace />
 </div>
 
 ---
@@ -116,6 +106,18 @@ layout: center
 Adjust the **Separation** (how easy the problem is) and the **Threshold**.
 
 <InteractiveROC />
+
+---
+layout: center
+---
+
+# Empirical ROC Curve (Spam Example)
+
+Real-world ROC curves are often "jagged" (step functions) because they are built from a finite set of test examples.
+
+<SpamRoc />
+
+<!-- Explain how to draw the roc curve -->
 
 ---
 
