@@ -14,6 +14,8 @@ layout: intro
 
 # ROC Analizine Giriş
 
+> Tom Fawcett'in makalesinden
+
 Vauwez Sam El Fareez
 
 20249258020@cumhuriyet.edu.tr

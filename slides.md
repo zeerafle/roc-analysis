@@ -14,6 +14,8 @@ layout: intro
 
 # An Introduction to ROC Analysis
 
+> From the paper by Tom Fawcett
+
 Vauwez Sam El Fareez
 
 20249258020@cumhuriyet.edu.tr
@@ -195,10 +197,13 @@ gap: 8
 
 To handle $N > 2$ classes, we use the **One-vs-All** approach.
 We create $N$ separate ROC graphs. For each class $C_i$:
--   **Positive**: Class $C_i$
--   **Negative**: All other classes ($\neg C_i$)
 
 <InteractiveMultiClass />
+
+<!--
+-   **Positive**: Class $C_i$
+-   **Negative**: All other classes ($\neg C_i$)
+-->
 
 ---
 
