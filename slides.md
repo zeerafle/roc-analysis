@@ -134,7 +134,13 @@ $$ AUC = P(Score(x^+) > Score(x^-)) $$
 It is a measure of **ranking quality**, independent of the threshold.
 
 ---
-layout: center
+
+# AUC Calculation: The Trapezoid Method
+
+We calculate AUC by summing the area of trapezoids formed as we walk down the ranked list of predictions.
+
+<InteractiveAucCalculation />
+
 ---
 
 # Interactive AUC Visualization
@@ -171,16 +177,67 @@ gap: 8
 
 # Precision-Recall vs ROC
 
-Sometimes people use **Precision-Recall (PR)** curves instead.
+**Rule of Thumb**: Use ROC when you want a stable metric across different class balances. Use PR when you care deeply about the "needle in the haystack" (rare positive class) and false positives are very expensive.
+
+<InteractivePrVsRoc />
+
+<!-- Sometimes people use **Precision-Recall (PR)** curves instead.
 
 -   **Precision**: $\frac{TP}{TP + FP}$ (How many predicted positives are actually positive?)
 -   **Recall**: Same as TPR.
 
 **Difference**:
 -   **ROC** is insensitive to class skew. If negatives increase by 10x, FPR stays the same (TN increases proportionally).
--   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision.
+-   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision. -->
+---
 
-**Rule of Thumb**: Use ROC when you want a stable metric across different class balances. Use PR when you care deeply about the "needle in the haystack" (rare positive class) and false positives are very expensive.
+# Multi-Class ROC: One-vs-All
+
+To handle $N > 2$ classes, we use the **One-vs-All** approach.
+We create $N$ separate ROC graphs. For each class $C_i$:
+-   **Positive**: Class $C_i$
+-   **Negative**: All other classes ($\neg C_i$)
+
+<InteractiveMultiClass />
+
+---
+
+# Multi-Class AUC
+
+## The Weighted Average Method
+
+This method calculates the total AUC by looking at the "One-vs-All" graphs described before.
+
+$$AUC_{total} = \sum_{c_i \in C} AUC(c_i) \cdot p(c_i)$$
+
+Calculation: Calculate the AUC for each of the separate class graphs (Cat vs. All, Dog vs. All, etc.). Then, you calculate a weighted average of these scores based on how common each class is (its "prevalence") in the data.
+
+$$AUC_{total} = (AUC_{Cat} \times p_{Cat}) + (AUC_{Dog} \times p_{Dog}) + (AUC_{Bird} \times p_{Bird})$$
+
+<hr></hr>
+
+**$p_{Cat}$**: The **prevalence** (probability) of Cats in your dataset. This is calculated as:
+
+$$p_{Cat} = \frac{\text{Total Number of Cats}}{\text{Total Number of Instances in Dataset}}$$
+
+*(Repeat this logic for Dog and Bird).*
+
+<!-- By multiplying by $p$, classes that appear more often in your data contribute more to the final score[cite: 842]. If 90% of your data are Dogs, the model's ability to recognize Dogs effectively becomes 90% of the final grade. -->
+
+---
+
+# Multi-Class AUC
+
+## The Pairwise Method
+
+This method tries to measure how distinct the classes are from each other, ignoring how many items are in each class.
+
+Calculation: Instead of grouping classes together, this method looks at every possible pair of classes (e.g., Cat vs. Dog, Cat vs. Bird, Dog vs. Bird).
+
+- It calculates the AUC for every pair.
+- It averages these pairwise AUCs to get a final score (called M).
+
+Pros/Cons: This measure is excellent if you want a score that does not change just because the number of items in a class changes (insensitive to class distribution). However, it is purely mathematical and difficult to visualize as a single graph surface.
 
 ---
 
@@ -192,6 +249,7 @@ Sometimes people use **Precision-Recall (PR)** curves instead.
 -   **Convex Hull** helps select the best set of classifiers.
 
 **Takeaway**: Don't just look at accuracy! Look at the curve.
+
 
 ---
 layout: end
