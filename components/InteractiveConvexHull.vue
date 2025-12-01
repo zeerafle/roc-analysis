@@ -82,8 +82,8 @@ onMounted(() => {
     ]
 
     const plot = Plot.plot({
-      width: 500,
-      height: 500,
+      width: 370,
+      height: 370,
       grid: true,
       x: { label: "False Positive Rate", domain: [0, 1] },
       y: { label: "True Positive Rate", domain: [0, 1] },

@@ -82,7 +82,7 @@ function renderPlot() {
 
   const distPlot = Plot.plot({
     width: 400,
-    height: 300,
+    height: 250,
     x: { domain: xDomain, label: "Score" },
     y: { label: "Density" },
     color: { legend: true, domain: ["Noise", "Signal"], range: ["steelblue", "orange"] },
@@ -96,7 +96,7 @@ function renderPlot() {
 
   const rocPlot = Plot.plot({
     width: 400,
-    height: 400,
+    height: 300,
     x: { domain: [0, 1], label: "False Positive Rate (FPR)" },
     y: { domain: [0, 1], label: "True Positive Rate (TPR)" },
     grid: true,

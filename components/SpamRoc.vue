@@ -87,7 +87,7 @@ onMounted(() => {
 
     const plot = Plot.plot({
       width: 400,
-      height: 350,
+      height: 300,
       grid: true,
       x: { domain: [0, 1], label: "False Positive Rate (FPR)" },
       y: { domain: [0, 1], label: "True Positive Rate (TPR)" },
@@ -109,37 +109,51 @@ onMounted(() => {
 
 <template>
   <div class="flex gap-4 items-start">
-    <!-- List of Emails -->
-    <div class="w-1/2 bg-white p-2 rounded shadow overflow-y-auto h-[400px] text-xs">
-      <table class="w-full text-left border-collapse">
-        <thead class="sticky top-0 bg-white shadow-sm">
-          <tr class="border-b">
-            <th class="p-1">ID</th>
-            <th class="p-1">Score</th>
-            <th class="p-1">Actual</th>
-            <th class="p-1">Pred</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(item, idx) in data" :key="item.id"
-              :class="{'bg-blue-100': idx < thresholdIndex, 'border-b-2 border-red-500': idx === thresholdIndex - 1}">
-            <td class="p-1">#{{ item.id }}</td>
-            <td class="p-1 font-mono">{{ item.score.toFixed(2) }}</td>
-            <td class="p-1">
-              <span :class="item.isSpam ? 'text-red-600 font-bold' : 'text-green-600'">
-                {{ item.isSpam ? 'Spam' : 'Ham' }}
-              </span>
-            </td>
-            <td class="p-1">
-               <span v-if="idx < thresholdIndex" class="text-red-600 font-bold">Spam</span>
-               <span v-else class="text-green-600">Ham</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Left Column: List of Emails + Slider -->
+    <div class="w-1/2 flex flex-col gap-2">
+      <div class="bg-white p-2 rounded shadow overflow-y-auto h-[250px] text-xs">
+        <table class="w-full text-left border-collapse">
+          <thead class="sticky top-0 bg-white shadow-sm">
+            <tr class="border-b">
+              <th class="p-1">ID</th>
+              <th class="p-1">Score</th>
+              <th class="p-1">Actual</th>
+              <th class="p-1">Pred</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(item, idx) in data" :key="item.id"
+                :class="{'bg-blue-100': idx < thresholdIndex, 'border-b-2 border-red-500': idx === thresholdIndex - 1}">
+              <td class="p-1">#{{ item.id }}</td>
+              <td class="p-1 font-mono">{{ item.score.toFixed(2) }}</td>
+              <td class="p-1">
+                <span :class="item.isSpam ? 'text-red-600 font-bold' : 'text-green-600'">
+                  {{ item.isSpam ? 'Spam' : 'Ham' }}
+                </span>
+              </td>
+              <td class="p-1">
+                 <span v-if="idx < thresholdIndex" class="text-red-600 font-bold">Spam</span>
+                 <span v-else class="text-green-600">Ham</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="w-full px-4 bg-slate-100 p-4 rounded">
+        <label class="block text-sm font-bold mb-2 text-slate-700">Threshold Slider</label>
+        <input type="range" min="0" :max="data.length" v-model.number="thresholdIndex" class="w-full accent-blue-600" />
+        <div class="text-center text-sm mt-2 text-slate-600">
+          Classifying top <strong>{{ thresholdIndex }}</strong> emails as Spam
+        </div>
+        <div class="flex justify-between text-xs mt-2 text-slate-500">
+            <span>Conservative (High Threshold)</span>
+            <span>Liberal (Low Threshold)</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Plot and Controls -->
+    <!-- Right Column: Plot and Metrics -->
     <div class="w-1/2 flex flex-col items-center">
       <div ref="plotDiv" class="bg-white p-2 rounded shadow"></div>
 
@@ -160,18 +174,6 @@ onMounted(() => {
               <span class="font-bold text-teal-600">F1 Score</span>
               <span class="font-mono">{{ formatPercent(currentMetrics.f1) }}</span>
           </div>
-      </div>
-
-      <div class="mt-2 w-full px-4 bg-slate-100 p-4 rounded">
-        <label class="block text-sm font-bold mb-2 text-slate-700">Threshold Slider</label>
-        <input type="range" min="0" :max="data.length" v-model.number="thresholdIndex" class="w-full accent-blue-600" />
-        <div class="text-center text-sm mt-2 text-slate-600">
-          Classifying top <strong>{{ thresholdIndex }}</strong> emails as Spam
-        </div>
-        <div class="flex justify-between text-xs mt-2 text-slate-500">
-            <span>Conservative (High Threshold)</span>
-            <span>Liberal (Low Threshold)</span>
-        </div>
       </div>
     </div>
   </div>

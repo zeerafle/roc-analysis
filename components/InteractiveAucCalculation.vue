@@ -150,8 +150,8 @@ onMounted(() => {
     const head = { x: state.FP, y: state.TP }
 
     const plot = Plot.plot({
-      width: 400,
-      height: 400,
+      width: 350,
+      height: 250,
       grid: true,
       x: { label: "False Positives (FP)", domain: [0, totalN] },
       y: { label: "True Positives (TP)", domain: [0, totalP] },
@@ -197,7 +197,7 @@ onMounted(() => {
         <h3 class="font-bold">Sorted Test Data</h3>
         <div class="text-gray-500">Total P: {{totalP}}, Total N: {{totalN}}</div>
       </div>
-      <div class="border rounded overflow-hidden">
+      <div class="border rounded overflow-y-auto max-h-[200px]">
         <table class="w-full text-center">
           <thead class="bg-gray-100 border-b">
             <tr>
@@ -236,9 +236,9 @@ onMounted(() => {
       <div ref="plotContainer" class="bg-white p-2 rounded shadow-sm border mb-2"></div>
 
       <!-- Status Box -->
-      <div class="w-full bg-gray-50 p-3 rounded border text-sm">
+      <div class="w-full bg-gray-50 p-2 rounded border text-xs">
         <div class="font-bold mb-1 border-b pb-1">Step {{ currentStep + 1 }}: {{ currentState.action }}</div>
-        <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+        <div class="grid grid-cols-2 gap-x-2 gap-y-1">
           <div>Current Pos: <b>({{ currentState.FP }}, {{ currentState.TP }})</b></div>
           <div>Previous Pos: <b>({{ currentState.FPprev }}, {{ currentState.TPprev }})</b></div>
           <div>Accumulated Area: <b>{{ currentState.Area.toFixed(2) }}</b></div>
@@ -246,7 +246,7 @@ onMounted(() => {
             Final AUC = {{ currentState.Area.toFixed(2) }} / ({{totalP}} × {{totalN}}) = {{ currentState.finalAuc.toFixed(3) }}
           </div>
         </div>
-        <div v-if="currentState.trapezoid" class="mt-2 text-xs text-orange-600 bg-orange-50 p-1 rounded">
+        <div v-if="currentState.trapezoid" class="mt-1 text-xs text-orange-600 bg-orange-50 p-1 rounded">
           Adding Trapezoid: Width {{ (currentState.trapezoid.x2 - currentState.trapezoid.x1).toFixed(1) }} ×
           Avg Height {{ ((currentState.trapezoid.y1 + currentState.trapezoid.y2)/2).toFixed(1) }}
           = {{ ((currentState.trapezoid.x2 - currentState.trapezoid.x1) * (currentState.trapezoid.y1 + currentState.trapezoid.y2)/2).toFixed(2) }}

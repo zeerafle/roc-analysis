@@ -60,32 +60,25 @@ const stats = computed(() => {
 
 const plotContainer = ref(null)
 
-// Generate a synthetic curve that passes near the point
-const generateCurve = (fpr, tpr) => {
-    // Simple power law y = x^k passing through (fpr, tpr)
-    // tpr = fpr^k => log(tpr) = k * log(fpr) => k = log(tpr) / log(fpr)
-    // Clamp k to avoid weird shapes
-    let k = Math.log(tpr) / Math.log(fpr)
-    if (!isFinite(k) || k <= 0) k = 0.5 // Fallback
-
-    const points = []
-    for(let i=0; i<=50; i++) {
-        const x = i/50
-        points.push({x, y: Math.pow(x, k)})
-    }
-    return points
-}
-
 onMounted(() => {
   watchEffect(() => {
     if (!plotContainer.value) return
 
     const { TPR, FPR } = stats.value
-    const curveData = generateCurve(FPR, TPR)
+
+    // In One-vs-All, we only have ONE point (TPR, FPR) for the selected class
+    // because we have a fixed confusion matrix (fixed threshold).
+    // We don't have a full curve. We just connect (0,0) -> Point -> (1,1)
+    // to show the "convex hull" of this single classifier.
+    const curveData = [
+        {x: 0, y: 0},
+        {x: FPR, y: TPR},
+        {x: 1, y: 1}
+    ]
 
     const plot = Plot.plot({
       width: 300,
-      height: 300,
+      height: 250,
       grid: true,
       x: { label: "FPR", domain: [0, 1] },
       y: { label: "TPR", domain: [0, 1] },
@@ -93,7 +86,7 @@ onMounted(() => {
         Plot.ruleY([0, 1]),
         Plot.ruleX([0, 1]),
         Plot.line([[0,0], [1,1]], { stroke: "#ddd", strokeDasharray: "4,4" }),
-        Plot.line(curveData, { x: "x", y: "y", stroke: "#3b82f6", strokeWidth: 3 }),
+        Plot.line(curveData, { x: "x", y: "y", stroke: "#3b82f6", strokeWidth: 2 }),
         Plot.dot([{x: FPR, y: TPR}], { x: "x", y: "y", fill: "red", r: 6 }),
         Plot.text([{x: FPR, y: TPR, label: selectedClass.value}], { x: "x", y: "y", text: "label", dy: -10, fontWeight: "bold" })
       ]
@@ -157,16 +150,20 @@ onMounted(() => {
     </div>
 
     <!-- Graph Side -->
-    <div class="flex flex-col items-center">
-      <h3 class="font-bold mb-2">ROC for {{ selectedClass }}</h3>
-      <div ref="plotContainer" class="bg-white p-2 rounded shadow-sm border"></div>
-      <div class="mt-4 text-sm grid grid-cols-2 gap-x-8 gap-y-1">
-        <div>TPR: <b>{{ stats.TPR.toFixed(2) }}</b></div>
-        <div>FPR: <b>{{ stats.FPR.toFixed(2) }}</b></div>
-        <div>TP: {{ stats.TP }}</div>
-        <div>FP: {{ stats.FP }}</div>
-        <div>TN: {{ stats.TN }}</div>
-        <div>FN: {{ stats.FN }}</div>
+    <div class="flex gap-4 items-start">
+      <div class="flex flex-col items-center">
+        <h3 class="font-bold mb-2">ROC for {{ selectedClass }}</h3>
+        <div ref="plotContainer" class="bg-white p-2 rounded shadow-sm border"></div>
+      </div>
+
+      <div class="mt-8 text-xs grid grid-cols-1 gap-y-2 bg-gray-50 p-3 rounded border">
+        <div class="font-bold border-b pb-1 mb-1">Metrics</div>
+        <div class="flex justify-between gap-4"><span>TPR:</span> <b>{{ stats.TPR.toFixed(2) }}</b></div>
+        <div class="flex justify-between gap-4"><span>FPR:</span> <b>{{ stats.FPR.toFixed(2) }}</b></div>
+        <div class="flex justify-between gap-4"><span>TP:</span> <span>{{ stats.TP }}</span></div>
+        <div class="flex justify-between gap-4"><span>FP:</span> <span>{{ stats.FP }}</span></div>
+        <div class="flex justify-between gap-4"><span>TN:</span> <span>{{ stats.TN }}</span></div>
+        <div class="flex justify-between gap-4"><span>FN:</span> <span>{{ stats.FN }}</span></div>
       </div>
     </div>
 
