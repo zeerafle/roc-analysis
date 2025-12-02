@@ -167,7 +167,7 @@ onMounted(() => {
   <div class="flex flex-col items-center">
     <div ref="container"></div>
     <div class="mt-4 text-sm text-gray-500">
-      Hover over curves to highlight. The dashed line is the <b>Convex Hull</b>.
+      Hover over curves to highlight.
       <br>
       <span v-if="hoveredCurve" :style="{ color: allCurves.find(c => c.id === hoveredCurve).color, fontWeight: 'bold' }">
         {{ allCurves.find(c => c.id === hoveredCurve).label }}

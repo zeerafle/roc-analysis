@@ -97,7 +97,7 @@ onMounted(() => {
         Plot.dot([currentPoint.value], { x: "fpr", y: "tpr", fill: "red", r: 6 }),
         Plot.ruleX([currentPoint.value.fpr], { stroke: "red", strokeOpacity: 0.3 }),
         Plot.ruleY([currentPoint.value.tpr], { stroke: "red", strokeOpacity: 0.3 }),
-        Plot.text([currentPoint.value], { x: "fpr", y: "tpr", text: d => `Threshold > ${d.score.toFixed(2)}`, dy: -10, fill: "red", textAnchor: "start", fontWeight: "bold" }),
+        Plot.text([currentPoint.value], { x: "fpr", y: "tpr", text: d => `Threshold ≥ ${d.score.toFixed(2)}`, dy: -10, fill: "red", textAnchor: "start", fontWeight: "bold" }),
         Plot.line([{x:0, y:0}, {x:1, y:1}], {x: "x", y: "y", stroke: "gray", strokeDasharray: "4,4"})
       ]
     });

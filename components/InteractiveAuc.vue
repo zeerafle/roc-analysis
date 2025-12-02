@@ -93,6 +93,9 @@ onMounted(() => {
         Plot.dot([{fpr: fpr.value, tpr: tpr.value}], { x: "fpr", y: "tpr", fill: "red", r: 6 }),
         Plot.text([{fpr: fpr.value, tpr: tpr.value}], { x: "fpr", y: "tpr", text: d => `(${d.fpr.toFixed(2)}, ${d.tpr.toFixed(2)})`, dy: -10, fill: "red", fontWeight: "bold" }),
 
+        // AUC Legend
+        Plot.text([{x: 0.7, y: 0.1}], { x: "x", y: "y", text: d => `AUC: ${auc.value.toFixed(3)}`, fill: "blue", fontWeight: "bold", fontSize: 16 }),
+
         // Crosshairs
         Plot.ruleX([fpr.value], { stroke: "red", strokeOpacity: 0.3 }),
         Plot.ruleY([tpr.value], { stroke: "red", strokeOpacity: 0.3 }),
@@ -136,13 +139,6 @@ const formatPercent = (val) => (val * 100).toFixed(1) + '%';
                 <input type="range" v-model.number="fp" min="1" :max="totalNegatives - 1" class="w-full accent-red-600" />
                 <div class="text-xs text-red-600 mt-1 text-right">FPR = {{ fpr.toFixed(2) }}</div>
             </div>
-        </div>
-
-        <!-- AUC Display -->
-        <div class="bg-slate-100 p-4 rounded text-center">
-            <div class="text-sm text-slate-500 uppercase tracking-wider font-bold">Estimated AUC</div>
-            <div class="text-4xl font-mono font-bold text-blue-600">{{ auc.toFixed(3) }}</div>
-            <p class="text-[10px] text-slate-400 mt-2">Assuming a power-law curve passing through the point.</p>
         </div>
     </div>
 

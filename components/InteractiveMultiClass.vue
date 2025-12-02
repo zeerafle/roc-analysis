@@ -119,24 +119,24 @@ onMounted(() => {
 
       <div class="grid grid-cols-4 gap-1 text-sm">
         <!-- Header Row -->
-        <div class="font-bold text-center self-end">Actual \ Pred</div>
+        <div class="font-bold text-center self-end">Pred \ Actual</div>
         <div v-for="cls in classes" :key="'h-'+cls" class="font-bold text-center p-2 bg-gray-50 rounded">
           {{ cls }}
         </div>
 
         <!-- Data Rows -->
-        <template v-for="(row, rIdx) in matrix" :key="'row-'+rIdx">
+        <template v-for="(predCls, pIdx) in classes" :key="'row-'+pIdx">
           <div class="font-bold flex items-center justify-end pr-2 bg-gray-50 rounded">
-            {{ classes[rIdx] }}
+            {{ predCls }}
           </div>
           <div
-            v-for="(val, cIdx) in row"
-            :key="'cell-'+rIdx+'-'+cIdx"
+            v-for="(actCls, aIdx) in classes"
+            :key="'cell-'+pIdx+'-'+aIdx"
             class="border-2 rounded p-3 flex flex-col items-center justify-center transition-colors duration-300"
-            :class="cellColor(cellType(classes[rIdx], classes[cIdx]))"
+            :class="cellColor(cellType(actCls, predCls))"
           >
-            <span class="text-lg font-bold">{{ val }}</span>
-            <span class="text-xs font-mono uppercase">{{ cellType(classes[rIdx], classes[cIdx]) }}</span>
+            <span class="text-lg font-bold">{{ matrix[aIdx][pIdx] }}</span>
+            <span class="text-xs font-mono uppercase">{{ cellType(actCls, predCls) }}</span>
           </div>
         </template>
       </div>

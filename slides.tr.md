@@ -31,7 +31,7 @@ Vauwez Sam El Fareez
 
 # ROC Nedir
 
-**Receiver Operating Characteristics (ROC)** grafikleri, sınıflandırıcıları düzenlemek ve performanslarını görselleştirmek için kullanıslıdır.
+**Receiver Operating Characteristics (ROC)** eğrisi, sınıflandırıcıları düzenlemek ve performanslarını görselleştirmek için kullanıslıdır.
 
 -   **Köken**: Sinyal algılama teorisi (II. Dünya Savaşı radar analizi).
 -   **Benimsenme**: Tıbbi karar verme süreçlerinde ve daha sonra makine öğrenimi topluluğu tarafından benimsenmiştir.
@@ -47,10 +47,10 @@ ROC analizi, bu ödünleşimleri anlamamıza yardımcı olur.
 
 İkili sınıflandırma problemi (Pozitif vs Negatif) için dört olası sonuç vardır:
 
-| | Tahmin Edilen Pozitif | Tahmin Edilen Negatif |
+| | Gerçek Pozitif | Gerçek Negatif |
 |---|---|---|
-| **Gerçek Pozitif** | **Doğru Pozitif (TP)** <br> (İsabet) | **Yanlış Negatif (FN)** <br> (Iskalama) |
-| **Gerçek Negatif** | **Yanlış Pozitif (FP)** <br> (Yanlış Alarm) | **Doğru Negatif (TN)** <br> (Doğru Red) |
+| **Tahmin Edilen Pozitif** | **Doğru Pozitif (TP)** <br> (İsabet) | **Yanlış Pozitif (FP)** <br> (Iskalama) |
+| **Tahmin Edilen Negatif** | **Yanlış Negatif (FN)** <br> (Yanlış Alarm) | **Doğru Negatif (TN)** <br> (Doğru Red) |
 
 Bunlardan temel metrikleri türetiriz:
 
@@ -68,6 +68,8 @@ Bunlardan temel metrikleri türetiriz:
 ---
 layout: two-cols
 ---
+
+# ROC Uzayı
 
 X ekseninde **FPR** ve Y ekseninde **TPR** çizilir.
 
@@ -169,45 +171,6 @@ Sınıflandırıcının çalışma noktasını (TP ve FP) değiştirmek için ka
 <InteractiveAuc />
 
 ---
-layout: two-cols
-gap: 8
----
-
-# Dışbükey Örtü (Convex Hull) & Eş-Performans
-
-- __ROC Dışbükey Örtüsü (ROCCH)__
-  - "En iyi" sistem, tüm sınıflandırıcıların dışbükey örtüsüdür.
-  - **A** ve **C** sınıflandırıcıları örtüyü oluşturur.
-  - **B** ve **D** sınıflandırıcıları optimal altıdır (örtünün altında).
-
-- __Eş-Performans Doğruları (Iso-Performance Lines)__
-  - Eşit **Beklenen Maliyet** doğruları.
-  - Eğim $m = \frac{P(N) \cdot C(FP)}{P(P) \cdot C(FN)}$.
-  - Optimal nokta, $m$ eğimine sahip doğruya teğet olan noktadır.
-
-::right::
-
-<div class="flex justify-center items-center h-full">
-  <InteractiveConvexHull />
-</div>
-
----
-
-# Precision-Recall (Kesinlik-Duyarlılık) vs ROC
-
-**Pratik Kural**: Farklı sınıf dengelerinde kararlı bir metrik istediğinizde ROC kullanın. "Samanlıkta iğne aramak" (nadir pozitif sınıf) sizin için önemliyse ve yanlış pozitifler çok pahalıysa PR kullanın.
-
-<InteractivePrVsRoc />
-
-<!-- Sometimes people use **Precision-Recall (PR)** curves instead.
-
--   **Precision**: $\frac{TP}{TP + FP}$ (How many predicted positives are actually positive?)
--   **Recall**: Same as TPR.
-
-**Difference**:
--   **ROC** is insensitive to class skew. If negatives increase by 10x, FPR stays the same (TN increases proportionally).
--   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision. -->
----
 
 # Çok Sınıflı ROC: Biri-Hepsine-Karşı (One-vs-All)
 
@@ -261,6 +224,48 @@ Hesaplama: Sınıfları gruplamak yerine, bu yöntem her olası sınıf çiftine
 
 Artılar/Eksiler: Sınıftaki öğe sayısı değiştiği için değişmeyen bir skor istiyorsanız (sınıf dağılımına duyarsız) bu ölçüm mükemmeldir. Ancak, tamamen matematikseldir ve tek bir grafik yüzeyi olarak görselleştirilmesi zordur.
 
+<!-- Take every pair of classes, compute the AUC for that binary problem, and average across pairs. That gives a multiclass AUC that doesn’t depend on class frequencies. -->
+
+---
+layout: two-cols
+gap: 8
+---
+
+# Dışbükey Örtü (Convex Hull) & Eş-Performans
+
+- __ROC Dışbükey Örtüsü (ROCCH)__
+  - "En iyi" sistem, tüm sınıflandırıcıların dışbükey örtüsüdür.
+  - **A** ve **C** sınıflandırıcıları örtüyü oluşturur.
+  - **B** ve **D** sınıflandırıcıları optimal altıdır (örtünün altında).
+
+- __Eş-Performans Doğruları (Iso-Performance Lines)__
+  - Eşit **Beklenen Maliyet** doğruları.
+  - Eğim $m = \frac{P(N) \cdot C(FP)}{P(P) \cdot C(FN)}$.
+  - Optimal nokta, $m$ eğimine sahip doğruya teğet olan noktadır.
+
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <InteractiveConvexHull />
+</div>
+
+---
+
+# Precision-Recall (Kesinlik-Duyarlılık) vs ROC
+
+<InteractivePrVsRoc />
+
+**Pratik Kural**: Farklı sınıf dengelerinde kararlı bir metrik istediğinizde ROC kullanın. "Samanlıkta iğne aramak" (nadir pozitif sınıf) sizin için önemliyse ve yanlış pozitifler çok pahalıysa PR kullanın.
+
+<!-- Sometimes people use **Precision-Recall (PR)** curves instead.
+
+-   **Precision**: $\frac{TP}{TP + FP}$ (How many predicted positives are actually positive?)
+-   **Recall**: Same as TPR.
+
+**Difference**:
+-   **ROC** is insensitive to class skew. If negatives increase by 10x, FPR stays the same (TN increases proportionally).
+-   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision. -->
+
 ---
 
 # Sonuç
@@ -270,11 +275,8 @@ Artılar/Eksiler: Sınıftaki öğe sayısı değiştiği için değişmeyen bir
 -   **AUC**, sıralama yeteneğinin tek sayılık bir özetini verir.
 -   **Dışbükey Örtü (Convex Hull)**, en iyi sınıflandırıcı setini seçmeye yardımcı olur.
 
-**Çıkarım**: Sadece doğruluğa bakmayın! Eğriye bakın.
-
-
 ---
 layout: end
 ---
 
-# Teşekkürler!
+# Dinlediğiniz İçin Teşekkür Ederim!

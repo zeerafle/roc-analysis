@@ -135,6 +135,20 @@ $$ AUC = P(Score(x^+) > Score(x^-)) $$
 
 It is a measure of **ranking quality**, independent of the threshold.
 
+<!-- It means AUC measures ranking quality across all thresholds.
+
+- Think of the model as assigning scores. Pick one positive and one negative at random.
+- AUC is the chance the positive’s score is higher than the negative’s: P(score(x+) > score(x−)).
+- If scores tie, standard practice counts it as half-correct: P(>) + 0.5·P(=).
+
+Tiny example:
+- Positives: [0.9, 0.6], Negatives: [0.8, 0.4]
+- All pairs (2×2=4): (0.9>0.8 ✓), (0.9>0.4 ✓), (0.6>0.8 ✗), (0.6>0.4 ✓)
+- AUC = 3/4 = 0.75
+
+One-line rephrase for your slide:
+“AUC is the probability a randomly chosen positive gets a higher score than a randomly chosen negative (ties count half).” -->
+
 ---
 
 # AUC Calculation: The Trapezoid Method
@@ -152,46 +166,7 @@ See how the **ROC Curve** bends and the **AUC** changes.
 
 <InteractiveAuc />
 
----
-layout: two-cols
-gap: 8
----
-
-# Convex Hull & Iso-Performance
-
-- __ROC Convex Hull (ROCCH)__
-  - The "best" system is the convex hull of all classifiers.
-  - Classifiers **A** and **C** form the hull.
-  - Classifiers **B** and **D** are suboptimal (below the hull).
-
-- __Iso-Performance Lines__
-  - Lines of equal **Expected Cost**.
-  - Slope $m = \frac{P(N) \cdot C(FP)}{P(P) \cdot C(FN)}$.
-  - Optimal point is tangent to the line with slope $m$.
-
-::right::
-
-<div class="flex justify-center items-center h-full">
-  <InteractiveConvexHull />
-</div>
-
----
-
-# Precision-Recall vs ROC
-
-**Rule of Thumb**: Use ROC when you want a stable metric across different class balances. Use PR when you care deeply about the "needle in the haystack" (rare positive class) and false positives are very expensive.
-
-<InteractivePrVsRoc />
-
-<!-- Sometimes people use **Precision-Recall (PR)** curves instead.
-
--   **Precision**: $\frac{TP}{TP + FP}$ (How many predicted positives are actually positive?)
--   **Recall**: Same as TPR.
-
-**Difference**:
--   **ROC** is insensitive to class skew. If negatives increase by 10x, FPR stays the same (TN increases proportionally).
--   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision. -->
----
+--
 
 # Multi-Class ROC: One-vs-All
 
@@ -243,6 +218,50 @@ Calculation: Instead of grouping classes together, this method looks at every po
 - It averages these pairwise AUCs to get a final score (called M).
 
 Pros/Cons: This measure is excellent if you want a score that does not change just because the number of items in a class changes (insensitive to class distribution). However, it is purely mathematical and difficult to visualize as a single graph surface.
+
+<!-- Take every pair of classes, compute the AUC for that binary problem, and average across pairs. That gives a multiclass AUC that doesn’t depend on class frequencies. -->
+
+---
+layout: two-cols
+gap: 8
+---
+
+# Convex Hull & Iso-Performance
+
+- __ROC Convex Hull (ROCCH)__
+  - The "best" system is the convex hull of all classifiers.
+  - Classifiers **A** and **C** form the hull.
+  - Classifiers **B** and **D** are suboptimal (below the hull).
+
+- __Iso-Performance Lines__
+  - Lines of equal **Expected Cost**.
+  - Slope $m = \frac{P(N) \cdot C(FP)}{P(P) \cdot C(FN)}$.
+  - Optimal point is tangent to the line with slope $m$.
+
+::right::
+
+<div class="flex justify-center items-center h-full">
+  <InteractiveConvexHull />
+</div>
+
+---
+
+# Precision-Recall vs ROC
+
+<InteractivePrVsRoc />
+
+**Rule of Thumb**: Use ROC when you want a stable metric across different class balances. Use PR when you care deeply about the "needle in the haystack" (rare positive class) and false positives are very expensive.
+
+
+<!-- Sometimes people use **Precision-Recall (PR)** curves instead.
+
+-   **Precision**: $\frac{TP}{TP + FP}$ (How many predicted positives are actually positive?)
+-   **Recall**: Same as TPR.
+
+**Difference**:
+-   **ROC** is insensitive to class skew. If negatives increase by 10x, FPR stays the same (TN increases proportionally).
+-   **PR** is sensitive to class skew. If negatives increase, False Positives might increase, lowering Precision. -->
+-
 
 ---
 
