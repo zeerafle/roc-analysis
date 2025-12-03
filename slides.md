@@ -280,3 +280,5 @@ layout: end
 ---
 
 # Thank You!
+
+Visit the slide at: [samfareez.is-a.dev/roc-analysis](https://samfareez.is-a.dev/roc-analysis)

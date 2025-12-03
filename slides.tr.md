@@ -136,6 +136,8 @@ $$ AUC = P(Score(x^+) > Score(x^-)) $$
 Bu, eşik değerinden bağımsız bir **sıralama kalitesi** ölçüsüdür.
 
 ---
+hide: true
+---
 
 # AUC Hesaplama: Yamuk Yöntemi
 
@@ -280,3 +282,5 @@ layout: end
 ---
 
 # Dinlediğiniz İçin Teşekkür Ederim!
+
+[samfareez.is-a.dev/roc-analysis](https://samfareez.is-a.dev/roc-analysis) adresinden slayta ulaşabilirsiniz.
